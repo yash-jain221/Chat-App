@@ -3,6 +3,8 @@ const http = require('http')
 const path = require('path')
 const socketio = require('socket.io')
 const Filter = require('bad-words')
+require('./db/mongoose')
+const User = require('./model/user')
 const {generateMessage,generateLocationMessage} = require('./utils/messages')
 const {addUser,removeUser,getUser,getUsersInRoom} = require('./utils/users')
 
@@ -14,16 +16,17 @@ const port = process.env.PORT || 3000
 const publicDirectorypath = path.join(__dirname, '../public')
 
 app.use(express.static(publicDirectorypath))
-
+//io.on io.to.emit, io.emit, socket.emit, socket.on, socket.join, socket.broadcast, socket.broadcast.to
 io.on('connection',(socket)=>{
     
-    socket.on('join',({username,room},callback)=>{
+    socket.on('join',async ({username,room},callback)=>{
         const{ error , user} = addUser({id: socket.id,username,room})
-
+        
         if(error){
             return callback(error)
         }
-
+        const user_db = new User({username: user.username,room: user.room})
+        await user_db.save()
         socket.join(user.room)
 
         socket.emit('message',generateMessage('Welcome!'))
@@ -37,12 +40,16 @@ io.on('connection',(socket)=>{
         callback()
     })
 
-    socket.on('sendMessage',(message,callback)=>{
+    socket.on('sendMessage',async (message,callback)=>{
         const user = getUser(socket.id)
         const filter = new Filter()
         if(filter.isProfane(message)){
             return callback('Profanity is not allowed')
         }
+        const user_db = await User.findOne({username: user.username,room: user.room})
+        user_db.texts = user_db.texts.concat({text: message})
+        await user_db.save()
+
         io.to(user.room).emit('message',generateMessage(user.username,message))
         callback()
     })

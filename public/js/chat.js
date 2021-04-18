@@ -29,9 +29,9 @@ const autoscroll = () =>{
         $messages.scrollTop = $messages.scrollHeight
     }
 }
-
+socket.on, socket.emit
 socket.on('message',(message)=>{
-    console.log(message)
+    //console.log(message)
     const html = Mustache.render(messageTemplate,{
         username:message.username,
         message:message.text,
@@ -69,7 +69,6 @@ $messageForm.addEventListener('submit',(e)=>{
         $messageFormButton.removeAttribute('disabled')
         $messageFormInput.value = ''
         $messageFormInput.focus()
-
         if(error){
             return console.log(error)
         }

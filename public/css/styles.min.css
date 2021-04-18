@@ -25,33 +25,37 @@ button{
     cursor:pointer;
     padding:12px;
     background:#7C5CBF;
-    border:none;color:#fff;
+    border:none;
+    color:#fff;
     font-size:16px;
-    transition:background .3s ease
 }
 button:hover{
     background:#6b47b8
 }
 button:disabled{
     cursor:default;
-    background:#7c5cbf94}.centered-form{
-        background:#333744;
-        width:100vw;
-        height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center
-    }
+    background:#7c5cbf94
+}
+.centered-form{
+    background:#333744;
+    width:100vw;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center
+}
 .centered-form__box{
     box-shadow:0 0 17px 1px #1D1F26;
     background:#F7F7FA;
-    padding:24px;width:250px
+    padding:24px;
+    width:250px
 }
 .centered-form button{
     width:100%
 }
 .centered-form input{
-    margin-bottom:16px;width:100%
+    margin-bottom:16px;
+    width:100%
 }
 .chat{
     display:flex
