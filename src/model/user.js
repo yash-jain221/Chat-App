@@ -1,22 +1,34 @@
-const mongoose =  require('mongoose')
+const mongoose = require('mongoose')
 
-const User = mongoose.model('User',{
-    username: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    room: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    texts: [{
-        text: {
-            type:String,
+const userSchema = new mongoose.Schema(
+    {
+        sid: {
+            type: String,
+            required: true
+        },
+        username: {
+            type: String,
+            required: true,
             trim: true
+        },
+        room: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        texts: [{
+            text: {
+                type: String,
+                trim: true
+            }
+        }],
+        warning: {
+            type: Boolean,
+            default: false
         }
-    }]
-})
+    }
+);
 
+userSchema.set('timestamps', true)
+const User = mongoose.model("User", userSchema);
 module.exports = User
