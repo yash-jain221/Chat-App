@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
         }
         const user_db = await User.findOne({ username: user.username, room: user.room })
         user_db.texts = user_db.texts.concat({ text: message })
-        await user_db.save()
+        
 
         let options = {
             mode: 'text',
@@ -60,16 +60,22 @@ io.on('connection', (socket) => {
             args: [user.username]
         };
 
-        PythonShell.run('./predict.py', options, function (err, result) {
-            if (err) throw err;
-        });
+        if((user_db.texts.length)%5 === 0){
+            PythonShell.run('./predict.py', options, function (err, result) {
+                if (err) throw err;
+            });
+        }
+
+        await user_db.save()
 
         io.to(user.room).emit('message', generateMessage(user.username, message))
 
         const user_dep = await User.findOne({ username: user.username, room: user.room })
-        if(user_dep.warning == true){
-            io.to(user.room).emit('message', generateMessage("Mental health issues are real and your friends and family are here to help you. Please contact 1800-599-0019 helpline number"))
+        
+        if(user_dep.warning === true){
+            socket.emit('message', generateMessage("Mental health issues are real and your friends and family are here to help you. Please contact 1800-599-0019 helpline number"))
             user_dep.warning = false
+            console.log(user_dep.warning)
             await user_dep.save()
         }
         callback()
