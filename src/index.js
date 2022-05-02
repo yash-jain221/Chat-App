@@ -17,6 +17,20 @@ const port = process.env.PORT || 3000
 const publicDirectorypath = path.join(__dirname, '../public')
 
 app.use(express.static(publicDirectorypath))
+
+let options = {
+    mode: 'text',
+    pythonOptions: ['-u'],
+    // args: [user.username]
+};
+
+setInterval(()=>{
+    PythonShell.run('./predict.py', options, function(err,result){
+        if(err){console.error(err)}
+    })
+}, 5000)
+
+
 //io.on io.to.emit, io.emit, socket.emit, socket.on, socket.join, socket.broadcast, socket.broadcast.to
 io.on('connection', (socket) => {
 
@@ -35,6 +49,11 @@ io.on('connection', (socket) => {
         socket.join(user.room)
 
         socket.emit('message', generateMessage('Welcome!'))
+        if(existingUser && existingUser.warning === true){
+            socket.emit('message', generateMessage("Mental health issues are real and your friends and family are here to help you. Please contact 1800-599-0019 helpline number"))
+            existingUser.warning = false
+            await existingUser.save()
+        }
         socket.broadcast.to(user.room).emit('message', generateMessage('Admin', `${user.username} has joined`))
         io.to(user.room).emit('roomData', {
             room: user.room,
@@ -52,32 +71,10 @@ io.on('connection', (socket) => {
         }
         const user_db = await User.findOne({ username: user.username, room: user.room })
         user_db.texts = user_db.texts.concat({ text: message })
-        
-
-        let options = {
-            mode: 'text',
-            pythonOptions: ['-u'],
-            args: [user.username]
-        };
-
-        if((user_db.texts.length)%5 === 0){
-            PythonShell.run('./predict.py', options, function (err, result) {
-                if (err) throw err;
-            });
-        }
-
         await user_db.save()
 
         io.to(user.room).emit('message', generateMessage(user.username, message))
-
-        const user_dep = await User.findOne({ username: user.username, room: user.room })
-        
-        if(user_dep.warning === true){
-            socket.emit('message', generateMessage("Mental health issues are real and your friends and family are here to help you. Please contact 1800-599-0019 helpline number"))
-            user_dep.warning = false
-            console.log(user_dep.warning)
-            await user_dep.save()
-        }
+        // const user_dep = await User.findOne({ username: user.username, room: user.room })
         callback()
     })
 
@@ -99,6 +96,7 @@ io.on('connection', (socket) => {
     })
 })
 
-server.listen(port, () => {
+server.listen(port, async () => {
+    //await User.create({sid: -1, username: "admin", room: "room"})
     console.log("Server running at port " + port)
 })

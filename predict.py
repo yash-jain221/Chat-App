@@ -17,10 +17,11 @@ users = db['users']
 
 texts = []
 
-for x in users.find({"username":sys.argv[1]}):
+userslist = list(users.find({}))
+
+for x in userslist:
     if(len(x['texts']) >= 1):
         texts.append(x['texts'])
-
 
 #preprocess data
 
@@ -42,18 +43,16 @@ for i in range(0, len(process)):
 # print(corpus)
 
 #predict
-
-svc = pickle.load(open('./depressed_model.sav', 'rb'))
-pred = svc.predict(corpus)
-# print(pred)
-
-#dump onto database
-
-i = 0
-for x in users.find({"username":sys.argv[1]}):
-    x['warning'] = pred[i]
-    users.update_one({'_id':x['_id']}, {'$set':{'warning': bool(not pred[i])}})
-    i+=1
+if(len(texts) > 0):
+    svc = pickle.load(open('./depressed_model.sav', 'rb'))
+    pred = svc.predict(corpus)
+    print(len(pred))
+    i = 0
+    for x in userslist:
+        if(len(x['texts']) >= 1):
+            users.update_one({'_id':x['_id']}, {'$set':{'warning': bool(not pred[i])}})
+            i+=1
+        
 
 
 
